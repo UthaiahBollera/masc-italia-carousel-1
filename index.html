@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASC Italia - Areas of Expertise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the 3D carousel effect and animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #18202f; /* Dark theme background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            height: 500px;
+            perspective: 1500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        .carousel-item {
+            position: absolute;
+            width: 60%;
+            height: 70%;
+            top: 15%;
+            left: 20%;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Darker shadow */
+            transition: all 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .carousel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 1rem;
+        }
+        
+        /* Title overlay for each carousel item */
+        .carousel-item-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 2rem 1rem 1rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+            border-bottom-left-radius: 1rem;
+            border-bottom-right-radius: 1rem;
+        }
+        
+        /* Show title only on the active item */
+        .carousel-item.active .carousel-item-caption {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Active slide styles */
+        .carousel-item.active {
+            transform: translateZ(0) rotateY(0);
+            opacity: 1;
+            z-index: 5;
+        }
+        
+        /* Previous slide styles */
+        .carousel-item.prev {
+            transform: translateX(-60%) translateZ(-300px) rotateY(35deg);
+            opacity: 0.7;
+            z-index: 4;
+        }
+        
+        /* Next slide styles */
+        .carousel-item.next {
+            transform: translateX(60%) translateZ(-300px) rotateY(-35deg);
+            opacity: 0.7;
+            z-index: 4;
+        }
+        
+        /* Slides further away */
+        .carousel-item.prev-2 {
+             transform: translateX(-90%) translateZ(-500px) rotateY(45deg);
+             opacity: 0.3;
+             z-index: 3;
+        }
+        .carousel-item.next-2 {
+             transform: translateX(90%) translateZ(-500px) rotateY(-45deg);
+             opacity: 0.3;
+             z-index: 3;
+        }
+
+        /* Navigation buttons */
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background-color: rgba(42, 52, 71, 0.8); /* Darker button */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background-color: #e22f2f; /* Reddish accent on hover */
+            transform: translateY(-50%) scale(1.1);
+            border-color: transparent;
+        }
+
+        #prev-btn { left: 10px; }
+        #next-btn { right: 10px; }
+        
+        @media (min-width: 768px) {
+            #prev-btn { left: 40px; }
+            #next-btn { right: 40px; }
+        }
+
+        .nav-button svg {
+            width: 24px;
+            height: 24px;
+            color: #e2e8f0; /* Light icon color */
+        }
+
+        /* Page Drawer Styles */
+        #page-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            display: flex;
+            justify-content: flex-end; /* Align to the right */
+            align-items: center;
+            pointer-events: none;
+        }
+
+        #drawer-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            opacity: 0;
+            transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        
+        #drawer-content {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            background-color: #18202f; /* Dark drawer background */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(105%);
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        #page-drawer.show {
+            pointer-events: auto;
+        }
+        #page-drawer.show #drawer-overlay {
+            opacity: 1;
+        }
+        #page-drawer.show #drawer-content {
+            transform: translateX(0);
+        }
+
+        #drawer-image {
+            width: 100%;
+            height: 45%;
+            object-fit: cover;
+        }
+
+        #drawer-text {
+            padding: 1.5rem 2rem;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        #drawer-caption {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e22f2f; /* Reddish accent for title */
+            margin-bottom: 1rem;
+        }
+
+        #drawer-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #cbd5e1; /* Light text color */
+        }
+
+        #drawer-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 50%;
+            color: #e2e8f0;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        #drawer-close-btn:hover {
+            background-color: #e22f2f;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="carousel-container">
+        <div class="carousel">
+            <!-- Carousel items will be injected here by JavaScript -->
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <button id="prev-btn" class="nav-button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+        </button>
+        <button id="next-btn" class="nav-button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        </button>
+    </div>
+
+    <!-- Page Drawer -->
+    <div id="page-drawer">
+        <div id="drawer-overlay"></div>
+        <div id="drawer-content">
+            <button id="drawer-close-btn">&times;</button>
+            <img id="drawer-image" src="" alt="">
+            <div id="drawer-text">
+                <h2 id="drawer-caption"></h2>
+                <p id="drawer-description"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousel = document.querySelector('.carousel');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const pageDrawer = document.getElementById('page-drawer');
+            const drawerOverlay = document.getElementById('drawer-overlay');
+            const drawerCloseBtn = document.getElementById('drawer-close-btn');
+            const drawerImage = document.getElementById('drawer-image');
+            const drawerCaption = document.getElementById('drawer-caption');
+            const drawerDescription = document.getElementById('drawer-description');
+
+            // --- Carousel Data with Descriptions ---
+            const items = [
+                { imageUrl: 'https://plus.unsplash.com/premium_photo-1733342421852-3bce709563e4?q=80&w=2064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', caption: 'Hydrogen Trucks', description: 'Pioneering the future of commercial transport with advanced hydrogen fuel cell trucks. Our expertise covers development, integration, and deployment of clean, efficient heavy-duty vehicles and refueling infrastructure.' },
+                { imageUrl: 'https://images.unsplash.com/photo-1618412016499-145a35a63456?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', caption: 'Embedded Software', description: 'Developing robust, real-time embedded systems for complex automotive applications. We leverage model-based development, CI/CD pipelines, and agile methodologies to deliver high-quality, safe, and reliable software solutions.' },
+                { imageUrl: 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', caption: 'Supercars', description: 'Deep knowledge in high-performance vehicle engineering, from hybrid powertrains and chassis dynamics to vehicle control systems. We collaborate with luxury brands like Ferrari and Lamborghini to push the boundaries of performance.' },
+                { imageUrl: 'https://plus.unsplash.com/premium_photo-1661935334659-a4f95e515c3b?q=80&w=1722&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', caption: 'Electric Vehicles', description: 'Specializing in the electrification of commercial vehicles, including buses, heavy trucks, and special EVs. Our services span battery system design, power electronics, regenerative braking, and advanced vehicle control algorithms.' },
+                { imageUrl: 'https://plus.unsplash.com/premium_photo-1715639312136-56a01f236440?q=80&w=1714&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', caption: 'Charging Infrastructure', description: 'Designing and deploying comprehensive charging solutions, from fast-charging stations to large-scale land and port-based networks. We have successfully deployed over 1300 charging systems globally.' },
+                { imageUrl: 'https://images.unsplash.com/photo-1504221507732-5246c045949b?q=80&w=2070&auto=format&fit=crop', caption: 'Renewable Energy', description: 'Executing large-scale renewable energy projects, including solar installations and hydroelectric plants. We provide full system integration, grid connection, and environmental monitoring to support a sustainable future.' }
+            ];
+
+            let currentIndex = 2; // Start with "Supercars" as the active image
+
+            function createCarouselItems() {
+                carousel.innerHTML = '';
+                items.forEach((item, index) => {
+                    const itemElement = document.createElement('div');
+                    itemElement.classList.add('carousel-item');
+                    itemElement.dataset.index = index;
+                    
+                    const img = document.createElement('img');
+                    img.src = item.imageUrl;
+                    img.alt = item.caption;
+                    img.onerror = () => { img.src = `https://placehold.co/800x600/e2e8f0/4a5568?text=Image+Not+Found`; };
+                    
+                    // Create and append the caption element
+                    const captionElement = document.createElement('div');
+                    captionElement.classList.add('carousel-item-caption');
+                    captionElement.textContent = item.caption;
+
+                    itemElement.appendChild(img);
+                    itemElement.appendChild(captionElement);
+                    carousel.appendChild(itemElement);
+                });
+            }
+
+            function updateCarousel() {
+                const carouselItems = document.querySelectorAll('.carousel-item');
+                const totalItems = carouselItems.length;
+                carouselItems.forEach((item, i) => {
+                    item.classList.remove('active', 'prev', 'next', 'prev-2', 'next-2');
+                    let newIndex = (i - currentIndex + totalItems) % totalItems;
+                    switch (newIndex) {
+                        case 0: item.classList.add('active'); break;
+                        case 1: item.classList.add('next'); break;
+                        case totalItems - 1: item.classList.add('prev'); break;
+                        case 2: item.classList.add('next-2'); break;
+                        case totalItems - 2: item.classList.add('prev-2'); break;
+                    }
+                });
+            }
+
+            function showDrawer(index) {
+                const item = items[index];
+                drawerImage.src = item.imageUrl;
+                drawerImage.alt = item.caption;
+                drawerCaption.textContent = item.caption;
+                drawerDescription.textContent = item.description;
+                pageDrawer.classList.add('show');
+            }
+
+            function hideDrawer() {
+                pageDrawer.classList.remove('show');
+            }
+
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % items.length;
+                updateCarousel();
+                hideDrawer();
+            });
+
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + items.length) % items.length;
+                updateCarousel();
+                hideDrawer();
+            });
+            
+            carousel.addEventListener('click', (e) => {
+                const targetItem = e.target.closest('.carousel-item');
+                if (!targetItem) return;
+                const targetIndex = parseInt(targetItem.dataset.index);
+                if (targetItem.classList.contains('active')) {
+                    showDrawer(targetIndex);
+                } else {
+                    currentIndex = targetIndex;
+                    updateCarousel();
+                    hideDrawer();
+                }
+            });
+
+            drawerCloseBtn.addEventListener('click', hideDrawer);
+            drawerOverlay.addEventListener('click', hideDrawer);
+
+            createCarouselItems();
+            updateCarousel();
+        });
+    </script>
+</body>
+</html>
